@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.StuTaskMapper">
+    <select id="findPage" resultMap="stuTaskMap" parameterType="map">
+        select tst.*,tt.teac_name,tc.course_name,ts.stu_name,ts.stu_code,tt2.task_code,tt2.task_title
+        from t_stutask tst,t_teacher tt, t_course tc ,t_student ts,t_task tt2
+        where tst.teac_id=tt.teac_id and tst.course_id=tc.course_id and tst.stu_id=ts.stu_id and tt2.task_id=tst.task_id
+        <if test="queryString!=null and queryString.length>0">
+            and ts.stu_name=#{queryString} or ts.stu_code=#{queryString}
+        </if>
+        <if test="stu_code!=null and stu_code.length>0">
+            and ts.stu_code=#{stu_code}
+        </if>
+    </select>
+    <!--未完成的作业-->
+    <select id="findPage1" resultMap="stuTaskMap" parameterType="map">
+        select tst.*,tt.teac_name,tc.course_name,ts.stu_name,ts.stu_code,tt2.task_code,tt2.task_title
+        from t_stutask tst,t_teacher tt, t_course tc ,t_student ts,t_task tt2
+        where tst.teac_id=tt.teac_id and tst.course_id=tc.course_id and tst.stu_id=ts.stu_id and tt2.task_id=tst.task_id
+        <if test="queryString!=null and queryString.length>0">
+            and ts.stu_name=#{queryString} or ts.stu_code=#{queryString}
+        </if>
+        <if test="stu_code!=null and stu_code.length>0">
+            and ts.stu_code=#{stu_code}
+        </if>
+        and (tst.stuTask_answer is null or tst.stuTask_answer = '')
+        and tst.stuTask_grade is null or tst.stuTask_grade=''
+    </select>
+    <!--已完成未批改的作业-->
+    <select id="findPage2" resultMap="stuTaskMap" parameterType="map">
+        select tst.*,tt.teac_name,tc.course_name,tc.course_code,ts.stu_name,ts.stu_code,tt2.task_code,tt2.task_title
+        from t_stutask tst,t_teacher tt, t_course tc ,t_student ts,t_task tt2
+        where tst.teac_id=tt.teac_id and tst.course_id=tc.course_id and tst.stu_id=ts.stu_id and tt2.task_id=tst.task_id
+        <if test="queryString!=null and queryString.length>0">
+            and ts.stu_name=#{queryString} or ts.stu_code=#{queryString}
+        </if>
+        <if test="stu_code!=null and stu_code.length>0">
+            and ts.stu_code=#{stu_code}
+        </if>
+        <if test="teac_id!=null and teac_id.length>0">
+            and tt.teac_id=#{teac_id}
+        </if>
+        and tst.stuTask_answer is not null and tst.stuTask_answer != ''
+        and tst.stuTask_grade is null or tst.stuTask_grade=''
+    </select>
+    <!--已完成已批改的作业-->
+    <select id="findPage3" resultMap="stuTaskMap" parameterType="map">
+        select tst.*,tt.teac_name,tc.course_name,tc.course_code,ts.stu_name,ts.stu_code,tt2.task_code,tt2.task_title
+        from t_stutask tst,t_teacher tt, t_course tc ,t_student ts,t_task tt2
+        where tst.teac_id=tt.teac_id and tst.course_id=tc.course_id and tst.stu_id=ts.stu_id and tt2.task_id=tst.task_id
+        <if test="queryString!=null and queryString.length>0">
+            and ts.stu_name=#{queryString} or ts.stu_code=#{queryString}
+        </if>
+        <if test="stu_code!=null and stu_code.length>0">
+            and ts.stu_code=#{stu_code}
+        </if>
+        <if test="teac_id!=null and teac_id.length>0">
+            and tt.teac_id=#{teac_id}
+        </if>
+        and tst.stuTask_answer is not null and tst.stuTask_answer != ''
+        and tst.stuTask_grade  is not null and tst.stuTask_grade  != ''
+    </select>
+    <resultMap id="stuTaskMap" type="stuTask">
+        <result column="teac_id" property="teac_id"/>
+        <result column="stu_id" property="stu_id"/>
+        <result column="course_id" property="course_id"/>
+        <result column="task_id" property="task_id"/>
+        <result column="stuTask_answer" property="stuTask_answer"/>
+        <result column="stuTask_grade" property="stuTask_grade"/>
+        <association property="teacher" javaType="teacher">
+            <id column="teac_id" property="teac_id"/>
+            <result column="teac_name" property="teac_name"/>
+        </association>
+        <association property="student" javaType="student">
+            <id column="stu_id" property="stu_id"/>
+            <result column="stu_name" property="stu_name"/>
+            <result column="stu_code" property="stu_code"/>
+        </association>
+        <association property="course" javaType="course">
+            <id column="course_id" property="course_id"/>
+            <result column="course_name" property="course_name"/>
+            <result column="course_code" property="course_code"/>
+        </association>
+        <association property="task" javaType="task">
+            <id column="task_id" property="task_id"/>
+            <result column="task_code" property="task_code"/>
+            <result column="task_title" property="task_title"/>
+        </association>
+    </resultMap>
+
+    <update id="update" parameterType="map">
+        update
+        t_stutask
+        <set>
+            <if test="teac_id!=null and teac_id.length>0">
+                teac_id=#{teac_id},
+            </if>
+            <if test="course_id!=null and course_id.length>0">
+                course_id=#{course_id},
+            </if>
+            <if test="stuTask_answer!=null and stuTask_answer.length>0">
+                stuTask_answer=#{stuTask_answer},
+            </if>
+            <if test="stuTask_grade!=null and stuTask_grade.length>0">
+                stuTask_grade=#{stuTask_grade},
+            </if>
+        </set>
+        where stu_id=#{stu_id} and task_id = #{task_id}
+    </update>
+    <!--新增一条学生作业记录-->
+    <insert id="add" parameterType="stuTask">
+        insert into t_stutask (teac_id, stu_id, course_id, task_id)
+        values (#{teac_id},#{stu_id},#{course_id},#{task_id});
+    </insert>
+    <select id="findByAnswer" resultType="stuTask" parameterType="string">
+        select * from t_stutask where stuTask_answer=#{value}
+    </select>
+    <delete id="delete" parameterType="string">
+        delete from t_stutask where task_id = #{task_id}
+    </delete>
+</mapper>

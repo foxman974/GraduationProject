@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.CourseMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultType="course" parameterType="string">
+            select * from t_course
+            <if test="value!=null and value.length>0">
+                where course_code = #{value} or course_name = #{value}
+            </if>
+    </select>
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage2" resultType="course" parameterType="map">
+        SELECT * FROM t_course
+        <where>
+        <if test="queryString!=null and queryString.length>0">
+                and course_code = #{queryString} or course_name = #{queryString}
+            </if>
+            <if test="stu_id!=null and stu_id.length>0">
+                and course_id NOT IN(SELECT course_id FROM t_stuCourse WHERE stu_id= #{stu_id})
+            </if>
+        </where>
+    </select>
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage3" resultType="course" parameterType="map">
+        select * from t_course
+        <where>
+            <if test="queryString!=null and queryString.length>0">
+                and course_code = #{queryString} or course_name = #{queryString}
+            </if>
+            <if test="teac_id!=null and teac_id.length>0">
+                and teac_id=#{teac_id}
+            </if>
+        </where>
+    </select>
+    <!--根据id查询课程-->
+    <select id="findById" parameterType="string" resultType="course">
+        select * from t_course where course_id = #{id}
+    </select>
+    <!--修改-->
+    <update id="update" parameterType="course">
+        UPDATE
+            t_course
+        <set>
+            <if test="course_code!=null and course_code.length>0">
+                course_code = #{course_code},
+            </if>
+            <if test="course_name!=null and course_name.length>0">
+                course_name = #{course_name},
+            </if>
+            <if test="course_period!=null and course_period>0">
+                course_period=#{course_period},
+            </if>
+            <if test="course_credit!=null and course_credit>0 ">
+                course_credit=#{course_credit},
+            </if>
+            <if test="course_year!=null and course_year.length>0">
+                course_year=#{course_year},
+            </if>
+            <if test="course_term!=null and course_term.length>0">
+                course_term=#{course_term},
+            </if>
+            <if test="course_checking!=null and course_checking>=0 and course_checking &lt;=1">
+                course_checking=#{course_checking},
+            </if>
+            <if test="course_answer!=null and course_answer>=0 and course_answer &lt;=1">
+                course_answer=#{course_answer},
+            </if>
+            <if test="course_task!=null and course_task>=0 and course_task &lt;=1">
+                course_task=#{course_task},
+            </if>
+        </set>
+        WHERE course_id = #{course_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_course where course_id = #{course_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="course">
+        insert into t_course(course_code, course_name, course_period, course_credit, course_year, course_term, course_checking, course_answer, course_task)
+         VALUES (#{course_code},#{course_name},#{course_period},#{course_credit},#{course_year},#{course_term},#{course_checking},#{course_answer},#{course_task})
+    </insert>
+    <!--查询所有-->
+    <select id="findAll" resultType="course">
+        select course_id,course_code,course_name from t_course
+    </select>
+</mapper>

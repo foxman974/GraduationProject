@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生成绩管理</title>
+    <meta name="description" content="学生成绩管理">
+    <meta name="keywords" content="学生成绩管理">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<style>
+    .demo-table-expand {
+        font-size: 0;
+    }
+
+    .demo-table-expand label {
+        width: 100px;
+        color: #99a9bf;
+    }
+
+    .demo-table-expand .el-form-item {
+        margin-right: 0;
+        margin-bottom: 0;
+        width: 50%;
+    }
+
+</style>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>教师模块<small>课程管理</small></h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>教师模块</el-breadcrumb-item>
+            <el-breadcrumb-item>课程管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="课程编码/课程名称" v-model="pagination.queryString" style="width: 200px;"
+                          class="filter-item"></el-input>
+                <el-button @click="handleCurrentChange1(1)" class="dalfBut">查询</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+
+                <el-table-column type="expand">
+                    <template slot-scope="props">
+                        <el-form label-position="left" inline class="demo-table-expand">
+                            <el-form-item label="课程编号">{{props.row.course_code}}</el-form-item>
+                            <el-form-item label="课程名">{{props.row.course_name}}</el-form-item>
+                            <el-form-item label="学分">{{props.row.course_credit}}</el-form-item>
+                            <el-form-item label="学时">{{props.row.course_period}}</el-form-item>
+                            <el-form-item label="学年">{{props.row.course_year}}</el-form-item>
+                            <el-form-item label="学期">{{props.row.course_term}}</el-form-item>
+                            <el-form-item label="考勤系数">{{props.row.course_checking}}</el-form-item>
+                            <el-form-item label="回答问题系数">{{props.row.course_answer}}</el-form-item>
+                            <el-form-item label="作业系数">{{props.row.course_task}}</el-form-item>
+                        </el-form>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                        label="课程编号"
+                        prop="course_code">
+                </el-table-column>
+                <el-table-column
+                        label="课程名"
+                        prop="course_name">
+                </el-table-column>
+                <el-table-column
+                        label="学分"
+                        prop="course_credit">
+                </el-table-column>
+                <el-table-column
+                        label="学时"
+                        prop="course_period">
+                </el-table-column>
+                <el-table-column label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button size="mini" type="primary" @click="handleQuestion(scope.row)">问题</el-button>
+                        <el-button type="primary" size="mini" @click="handleTask(scope.row)">作业</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+            <!-- 问题标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="新建课堂问题" :visible.sync="dialogFormVisible">
+                    <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="问题编码" prop="que_code">
+                                    <el-input v-model="formData.que_code"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="18">
+                                <el-form-item label="问题内容" prop="que_content">
+                                    <el-input
+                                            type="textarea"
+                                            :rows="4"
+                                            placeholder="请输入内容"
+                                            v-model="formData.que_content">
+                                    </el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleQuestionAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 作业标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="布置作业" :visible.sync="dialogFormVisible4Edit">
+                    <el-form ref="dataEditForm" :model="formData" :rules="rules" label-position="right" label-width="100px">
+                        <el-row>
+                            <el-col :span="12">
+                                <el-form-item label="作业编号" prop="task_code">
+                                    <el-input v-model="formData.task_code"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="分数百分比" prop="task_point">
+                                    <el-input v-model="formData.task_point"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="18">
+                                <el-form-item label="作业题目" prop="task_title">
+                                    <el-input
+                                            type="textarea"
+                                            :rows="4"
+                                            placeholder="请输入内容"
+                                            v-model="formData.task_title">
+                                    </el-input>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+                        <el-button type="primary" @click="handleTaskAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            pagination: {//分页相关模型数据
+                currentPage: 1,//当前页码
+                pageSize:7,//每页显示的记录数
+                total:0,//总记录数
+                queryString:null//查询条件
+            },
+            dataList: [],//当前页要展示的分页列表数据
+            formData: {},//表单数据
+            dialogFormVisible: false,//增加表单是否可见
+            dialogFormVisible4Edit:false,//编辑表单是否可见
+            rules: {//校验规则
+                task_code: [{ required: true, message: '作业编码为必填项', trigger: 'blur' }],
+                task_point: [{ required: true, message: '分数百分比为必填项', trigger: 'blur' }],
+                task_title: [{ required: true, message: '作业题目为必填项', trigger: 'blur' }],
+                que_code: [{ required: true, message: '问题编号为必填项', trigger: 'blur' }],
+                que_content: [{ required: true, message: '问题内容为必填项', trigger: 'blur' }]
+            }
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.findPage();
+        },
+        methods: {
+            //新增课堂问题
+            handleQuestionAdd() {
+                this.$refs["dataAddForm"].validate((valid)=>{
+                    if(valid){
+                        // ajax提交，返回Result：Result(boolean flag, String message) {
+                        axios.post("/que/add",this.formData).then((response)=>{
+                            // 关闭页面
+                            this.dialogFormVisible = false;
+                            if(response.data.flag){
+                                this.$message({
+                                    type:"success",
+                                    message:response.data.message
+                                })
+                            }else{
+                                this.$message.error(response.data.message);
+                            }
+                        }).catch((error)=>{
+
+                        }).finally(()=>{
+                            // 刷新列表页面
+                            this.findPage();
+                        })
+                    }else{
+                        this.$message.error("表单校验有误！不能提交");
+                        return false; // 不提交，输出校验的内容
+                    }
+                })
+            },
+            //布置课程作业
+            handleTaskAdd () {
+                this.$refs["dataEditForm"].validate((valid)=>{
+                    if(valid){
+
+                        // ajax提交，返回Result：Result(boolean flag, String message) {
+                        axios.post("/task/add",this.formData).then((response)=>{
+                            // 关闭页面
+                            //alert(this.formData.course_id);
+                            this.dialogFormVisible4Edit = false;
+                            if(response.data.flag){
+                                this.$message({
+                                    type:"success",
+                                    message:response.data.message
+                                })
+                            }else{
+                                this.$message.error(response.data.message);
+                            }
+                        }).catch((error)=>{
+
+                        }).finally(()=>{
+                            // 刷新列表页面
+                            this.findPage();
+                        })
+                    }else{
+                        this.$message.error("表单校验有误！不能提交");
+                        return false; // 不提交，输出校验的内容
+                    }
+                })
+
+            },
+            //分页查询
+            findPage() {
+                // 查询分页结果数据
+                // 初始化页面
+                var params = {
+                    "currentPage":this.pagination.currentPage,
+                    "pageSize":this.pagination.pageSize,
+                    "queryString":this.pagination.queryString
+                };
+                axios.post("/course/findPageByTeacId",params).then((response)=>{
+                    // 将响应的结果给页面数据
+                    // 总记录数
+                    this.pagination.total = response.data.total;
+                    // 封装结果集
+                    this.dataList = response.data.rows;
+                })
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+            },
+            // 弹出课堂问题添加窗口
+            handleQuestion(row) {
+                // 弹出窗口
+                this.dialogFormVisible = true;
+                // 重置表单
+                this.resetForm();
+
+                this.formData.course_id=row.course_id;
+            },
+            // 弹出作业添加窗口
+            handleTask(row) {
+                //alert(row.course_id);
+                // 显示编辑窗口
+                this.dialogFormVisible4Edit = true;
+                this.resetForm();
+
+                this.formData.course_id=row.course_id;
+                this.formData.course=row;
+
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 条件置空
+                this.pagination.queryString = "";
+                // 查询
+                this.findPage();
+            },
+            //切换页码
+            handleCurrentChange1(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 查询
+                this.findPage();
+            }
+        }
+    });
+</script>
+</html>

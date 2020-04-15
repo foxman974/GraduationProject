@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.QuestionMapper">
+    <!--分页查询-->
+    <select id="findPage" parameterType="string" resultMap="questionMap">
+        select tq.que_id, tq.que_code, tq.course_id, tq.que_content,course_code, course_name, course_period, course_credit, course_year, course_term, course_checking, course_answer, course_task, teac_id
+        from t_question tq,t_course tc
+        where tq.course_id=tc.course_id
+        <if test="value!=null and value.length>0">
+            and tq.que_code=#{value}
+        </if>
+    </select>
+    <resultMap id="questionMap" type="question" autoMapping="true">
+        <id property="que_id" column="que_id"/>
+        <association property="course" javaType="course">
+            <id column="course_id" property="course_id"/>
+            <result property="course_code" column="course_code"/>
+            <result property="course_name" column="course_name"/>
+            <result property="course_period" column="course_period"/>
+            <result property="course_credit" column="course_credit"/>
+            <result property="course_year" column="course_year"/>
+            <result property="course_term" column="course_term"/>
+            <result property="course_checking" column="course_checking"/>
+            <result property="course_answer" column="course_answer"/>
+            <result property="course_task" column="course_task"/>
+            <result property="teac_id" column="teac_id"/>
+        </association>
+    </resultMap>
+    <!--编辑-->
+    <update id="update" parameterType="question">
+        update t_question
+        <set>
+            <if test="que_code!=null and que_code.length>0">
+                que_code=#{que_code},
+            </if>
+            <if test="course_id!=null and course_id.length>0">
+                course_id=#{course_id},
+            </if>
+            <if test="que_content!=null and que_content.length>0">
+                que_content=#{que_content},
+            </if>
+        </set>
+        where que_id=#{que_id}
+    </update>
+    <!--删除-->
+    <delete id="delete" parameterType="string">
+        delete from t_question where que_id = #{que_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="question">
+        insert into t_question(que_code, course_id, que_content)
+        VALUES (#{que_code},#{course_id},#{que_content})
+    </insert>
+    <!--根据id查询问题-->
+    <select id="findById" parameterType="string" resultMap="questionMap">
+        select tq.que_id, tq.que_code, tq.course_id, tq.que_content,course_code, course_name, course_period, course_credit, course_year, course_term, course_checking, course_answer, course_task, teac_id
+        from t_question tq,t_course tc
+        where tq.course_id=tc.course_id
+        <if test="value!=null and value.length>0">
+            and tq.que_id=#{value}
+        </if>
+    </select>
+    <!--根据id查询问题-->
+    <select id="findByCourseId" parameterType="string" resultType="question">
+        select tq.que_id, tq.que_code, tq.course_id, tq.que_content
+        from t_question tq
+        where
+        <if test="value!=null and value.length>0">
+            tq.course_id=#{value}
+        </if>
+    </select>
+</mapper>

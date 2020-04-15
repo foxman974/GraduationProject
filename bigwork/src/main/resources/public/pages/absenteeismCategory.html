@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生成绩管理</title>
+    <meta name="description" content="学生成绩管理">
+    <meta name="keywords" content="学生成绩管理">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>管理模块<small>缺勤类型管理</small></h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>管理模块</el-breadcrumb-item>
+            <el-breadcrumb-item>缺勤类型管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="缺勤类型编码/缺勤类型名称" v-model="pagination.queryString" style="width: 200px;" class="filter-item"></el-input>
+                <el-button @click="handleCurrentChange1(1)" class="dalfBut">查询</el-button>
+                <el-button type="primary" class="butT" @click="handleCreate()">新建</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column prop="abC_code" label="缺勤类型编码" align="center"></el-table-column>
+                <el-table-column prop="abC_category" label="缺勤类型名称" align="center"></el-table-column>
+                <el-table-column prop="abC_deductMarks" label="扣分" align="center"></el-table-column>
+                <el-table-column label="操作" align="center">
+                    <template slot-scope="scope">
+                        <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">编辑</el-button>
+                        <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+            <!-- 新增标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="新增缺勤类型" :visible.sync="dialogFormVisible">
+                    <el-form ref="dataAddForm" :model="formData" :rules="rules" label-position="right" label-width="150px">
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form-item label="缺勤类型编码" prop="abC_code">
+                                    <el-input v-model="formData.abC_code"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24">
+                                <el-form-item label="缺勤类型名称" prop="abC_category">
+                                    <el-input v-model="formData.abC_category"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24">
+                                <el-form-item label="相应扣分" prop="abC_deductMarks">
+                                    <el-input-number v-model="formData.abC_deductMarks"
+                                                     size="small"
+                                                     :precision="1"
+                                                     :step="0.5"
+                                                     :max="20"
+                                                     @blur="fun2()"
+                                                     controls-position="right"
+                                                     step-strictly>
+                                    </el-input-number>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible = false">取消</el-button>
+                        <el-button type="primary" @click="handleAdd()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+
+            <!-- 编辑标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="编辑检查项" :visible.sync="dialogFormVisible4Edit">
+                    <el-form ref="dataEditForm" :model="formData" :rules="rules" label-position="right" label-width="150px">
+                        <el-row>
+                            <el-col :span="24">
+                                <el-form-item label="缺勤类型编码" prop="abC_code">
+                                    <el-input v-model="formData.abC_code"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24">
+                                <el-form-item label="缺勤类型名称" prop="abC_category">
+                                    <el-input v-model="formData.abC_category"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="24">
+                                <el-form-item label="相应扣分" prop="abC_deductMarks">
+                                    <el-input-number v-model="formData.abC_deductMarks"
+                                                     size="small"
+                                                     :precision="1"
+                                                     :step="0.5"
+                                                     :max="20"
+                                                     @blur="fun2()"
+                                                     controls-position="right"
+                                                     step-strictly>
+                                    </el-input-number>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4Edit = false">取消</el-button>
+                        <el-button type="primary" @click="handleEdit()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data:{
+            pagination: {//分页相关模型数据
+                currentPage: 1,//当前页码
+                pageSize:7,//每页显示的记录数
+                total:0,//总记录数
+                queryString:null//查询条件
+            },
+            dataList: [],//当前页要展示的分页列表数据
+            formData: {},//表单数据
+            dialogFormVisible: false,//增加表单是否可见
+            dialogFormVisible4Edit:false,//编辑表单是否可见
+            rules: {//校验规则
+                abC_code: [{ required: true, message: '缺勤类型编码为必填项', trigger: 'blur' }],
+                abC_category: [{ required: true, message: '缺勤类型名称为必填项', trigger: 'blur' }],
+                abC_deductMarks: [{ required: true, message: '相应扣分为必填项', trigger: 'blur' }]
+            }
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.findPage();
+        },
+        methods: {
+            fun2(){
+                if ((this.formData.abC_deductMarks*10) % 5 !==0) {
+                    this.formData.abC_deductMarks=((this.formData.abC_deductMarks*10-((this.formData.abC_deductMarks*10) % 5))+5)/10
+                }
+            },
+            //编辑
+            handleEdit() {
+                this.$refs["dataEditForm"].validate((valid)=>{
+                    if(valid){
+                        // ajax提交，返回Result：Result(boolean flag, String message) {
+                        axios.post("../absenteeismCategory/edit",this.formData).then((response)=>{
+                            // 关闭页面
+                            this.dialogFormVisible4Edit = false;
+                            if(response.data.flag){
+                                this.$message({
+                                    type:"success",
+                                    message:response.data.message
+                                })
+                            }else{
+                                this.$message.error(response.data.message);
+                            }
+                        }).catch((error)=>{
+
+                        }).finally(()=>{
+                            // 刷新列表页面
+                            this.findPage();
+                        })
+                    }else{
+                        this.$message.error("表单校验有误！不能提交");
+                        return false; // 不提交，输出校验的内容
+                    }
+                })
+            },
+            //添加
+            handleAdd () {
+                this.$refs["dataAddForm"].validate((valid)=>{
+                    if(valid){
+                        // ajax提交，返回Result：Result(boolean flag, String message) {
+                        axios.post("../absenteeismCategory/add",this.formData).then((response)=>{
+                            // 关闭页面
+                            this.dialogFormVisible = false;
+                            if(response.data.flag){
+                                this.$message({
+                                    type:"success",
+                                    message:response.data.message
+                                })
+                            }else{
+                                this.$message.error(response.data.message);
+                            }
+                        }).catch((error)=>{
+
+                        }).finally(()=>{
+                            // 刷新列表页面
+                            this.findPage();
+                        })
+                    }else{
+                        this.$message.error("表单校验有误！不能提交");
+                        return false; // 不提交，输出校验的内容
+                    }
+                })
+
+            },
+            //分页查询
+            findPage() {
+                // 查询分页结果数据
+                // 初始化页面
+                var params = {
+                    "currentPage":this.pagination.currentPage,
+                    "pageSize":this.pagination.pageSize,
+                    "queryString":this.pagination.queryString
+                };
+                axios.post("/absenteeismCategory/findPage",params).then((response)=>{
+                    // 将响应的结果给页面数据
+                    // 总记录数
+                    this.pagination.total = response.data.total;
+                    // 封装结果集
+                    this.dataList = response.data.rows;
+                })
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+            },
+            // 弹出添加窗口
+            handleCreate() {
+                // 弹出窗口
+                this.dialogFormVisible = true;
+                // 重置表单
+                this.resetForm();
+            },
+            // 弹出编辑窗口
+            handleUpdate(row) {
+                //alert(row.absenteeismCategory_id);
+                // 显示编辑窗口
+                this.dialogFormVisible4Edit = true;
+                // 表单回显
+                axios.get("/absenteeismCategory/findById?abC_id="+row.abC_id).then((response)=>{
+                    // 返回Result(flag,message,data)
+                    if(response.data.flag){
+                        // 回显数据
+                        this.formData = response.data.data;
+                        this.$message({
+                            type:"success",
+                            message:response.data.message
+                        })
+                    }else{
+                        this.$message.error(response.data.message)
+                    }
+                }).catch((error)=>{
+
+                })
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 条件置空
+                this.pagination.queryString = "";
+                // 查询
+                this.findPage();
+            },
+            //切换页码
+            handleCurrentChange1(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 查询
+                this.findPage();
+            },
+            // 删除
+            handleDelete(row) {
+                //alert(row.id);
+                this.$confirm('此操作将永久删除该数据, 是否继续?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                    center: true
+                }).then(() => {
+                    axios.get("/absenteeismCategory/deleteById?abC_id="+row.abC_id).then((response)=>{
+                        // 返回Result(flag,message)
+                        if(response.data.flag){
+                            this.$message({
+                                type: 'success',
+                                message: response.data.message
+                            });
+                        }else{
+                            this.$message({
+                                type: 'error',
+                                message: response.data.message
+                            });
+                        }
+                    }).catch((error)=>{
+                        // 403异常
+                        showError(error);
+                    }).finally(()=>{
+                        // 删除成功，刷新页面
+                        this.findPage();
+                    })
+
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: '已取消删除'
+                    });
+                });
+            }
+        }
+    });
+    function showError(e) {
+        //console.log(e);
+        if(e == "Error: Request failed with status code 403"){
+            vue.$message.error("当前用户权限不足！");
+            return;
+        }else{
+            vue.$message.error("未知错误！");
+            return;
+        }
+    }
+</script>
+</html>

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.AcademyMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultType="academy" parameterType="string">
+            select * from t_academy
+            <if test="value!=null and value.length>0">
+                where academy_code = #{value} or academy_name = #{value}
+            </if>
+    </select>
+    <!--根据id查询学院-->
+    <select id="findById" parameterType="string" resultType="academy">
+        select * from t_academy where academy_id = #{id}
+    </select>
+    <!--查询所有-->
+    <select id="findAll" resultMap="academyMap">
+        select ta.academy_id, academy_code, academy_name,
+               tm.major_id, major_code, major_name,
+               tc.class_id, class_code, class_name
+        from (t_academy ta left join t_major tm on ta.academy_id=tm.academy_id ) left join t_classes tc on tc.major_id=tm.major_id
+    </select>
+    <resultMap id="academyMap" type="academy">
+        <id property="academy_id" column="academy_id"/>
+        <result property="academy_code" column="academy_code"/>
+        <result property="academy_name" column="academy_name"/>
+        <collection property="majors" ofType="major">
+            <id property="major_id" column="major_id"/>
+            <result property="major_code" column="major_code"/>
+            <result property="major_name" column="major_name"/>
+            <collection property="classes" ofType="classes">
+                <id property="class_id" column="class_id"/>
+                <result property="class_name" column="class_name"/>
+                <result property="class_code" column="class_code"/>
+                <result property="academy_id" column="academy_id"/>
+                <result property="major_id" column="major_id"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <!--修改-->
+    <update id="update" parameterType="academy">
+        UPDATE
+            t_academy
+        <set>
+            <if test="academy_code!=null and academy_code.length>0">
+                academy_code = #{academy_code},
+            </if>
+            <if test="academy_name!=null and academy_name.length>0">
+                academy_name = #{academy_name},
+            </if>
+        </set>
+
+        WHERE academy_id = #{academy_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_academy where academy_id = #{academy_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="academy">
+        insert into t_academy(academy_code, academy_name) VALUES (#{academy_code},#{academy_name})
+    </insert>
+</mapper>

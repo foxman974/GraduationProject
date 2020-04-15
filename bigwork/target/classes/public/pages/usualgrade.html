@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生成绩管理</title>
+    <meta name="description" content="学生成绩管理">
+    <meta name="keywords" content="学生成绩管理">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>管理模块
+            <small>平时成绩管理</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>管理模块</el-breadcrumb-item>
+            <el-breadcrumb-item>平时成绩管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <div class="filter-container">
+                <el-input placeholder="学号/姓名" v-model="pagination.queryString" style="width: 200px;"
+                          class="filter-item"></el-input>
+                <el-button @click="handleCurrentChange1(1)" class="dalfBut">查询</el-button>
+            </div>
+            <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                <el-table-column type="index" align="center" label="序号"></el-table-column>
+                <el-table-column prop="student.stu_code" label="学号" align="center"></el-table-column>
+                <el-table-column prop="student.stu_name" label="姓名" align="center"></el-table-column>
+                <el-table-column prop="course.course_name" label="课程名" align="center"></el-table-column>
+                <el-table-column prop="course.course_code" label="课程编号" align="center"></el-table-column>
+                <el-table-column prop="abs_point" label="出勤得分" align="center"></el-table-column>
+                <el-table-column prop="que_point" label="问题得分" align="center"></el-table-column>
+                <el-table-column prop="task_point" label="作业得分" align="center"></el-table-column>
+                <el-table-column prop="other_point" label="其他得分" align="center"></el-table-column>
+                <el-table-column prop="all_point" label="最终平时成绩" align="center"></el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @current-change="handleCurrentChange"
+                        :current-page="pagination.currentPage"
+                        :page-size="pagination.pageSize"
+                        layout="total, prev, pager, next, jumper"
+                        :total="pagination.total">
+                </el-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            pagination: {//分页相关模型数据
+                currentPage: 1,//当前页码
+                pageSize: 7,//每页显示的记录数
+                total: 0,//总记录数
+                queryString: null//查询条件
+            },
+            dataList: [],//当前页要展示的分页列表数据
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.findPage();
+        },
+        methods: {
+
+            //分页查询
+            findPage() {
+                // 查询分页结果数据
+                // 初始化页面
+                var params = {
+                    "currentPage": this.pagination.currentPage,
+                    "pageSize": this.pagination.pageSize,
+                    "queryString": this.pagination.queryString
+                };
+                axios.post("/usualGrade/findPage", params).then((response) => {
+                    // 将响应的结果给页面数据
+                    // 总记录数
+                    this.pagination.total = response.data.total;
+                    // 封装结果集
+                    this.dataList = response.data.rows;
+                })
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 条件置空
+                this.pagination.queryString = "";
+                // 查询
+                this.findPage();
+            },
+            //切换页码
+            handleCurrentChange1(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 查询
+                this.findPage();
+            },
+
+        }
+    });
+</script>
+</html>

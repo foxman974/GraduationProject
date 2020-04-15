@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.AbsenteeismMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="absenteeismMap" parameterType="string">
+            select ta.*,tac.abC_category,tac.abC_deductMarks,tc.course_name,ts.stu_name
+            from (((t_absenteeism ta left join t_absenteeismcategory tac on ta.abC_id = tac.abC_id)
+                                   left join t_course tc on ta.course_id = tc.course_id)
+                                   left join t_student ts on ta.stu_id=ts.stu_id)
+            <if test="value!=null and value.length>0">
+                where abs_code = #{value}
+            </if>
+    </select>
+    <!--根据id查询缺勤-->
+    <select id="findById" parameterType="string" resultMap="absenteeismMap">
+        select ta.*,tac.abC_category,tac.abC_deductMarks,tc.course_name,ts.stu_name
+        from t_absenteeism ta,t_absenteeismcategory tac,t_course tc ,t_student ts
+        where ta.abC_id=tac.abC_id and ta.course_id=tc.course_id and ta.stu_id = ts.stu_id and  abs_id = #{id}
+    </select>
+    <resultMap id="absenteeismMap" type="absenteeism">
+        <id property="abs_id" column="abs_id"/>
+        <result property="abs_code" column="abs_code"/>
+        <result property="course_id" column="course_id"/>
+        <result property="abC_id" column="abC_id"/>
+        <result property="stu_id" column="stu_id"/>
+        <result property="abs_week" column="abs_week"/>
+        <result property="abs_dayOfWeek" column="abs_dayOfWeek"/>
+        <result property="abs_section" column="abs_section"/>
+        <association property="absenteeismCategory" javaType="absenteeismCategory">
+            <id property="abC_id" column="abC_id"/>
+            <result property="abC_category" column="abC_category"/>
+            <result property="abC_deductMarks" column="abC_deductMarks"/>
+        </association>
+        <association property="course" javaType="course">
+            <id property="course_id" column="course_id"/>
+            <result property="course_name" column="course_name"/>
+        </association>
+        <association property="student" javaType="student">
+            <id property="stu_id" column="stu_id"/>
+            <result property="stu_name" column="stu_name"/>
+        </association>
+
+    </resultMap>
+    <!--修改-->
+    <update id="update" parameterType="absenteeism">
+        UPDATE
+        t_absenteeism
+        <set>
+            <if test="abs_code!=null and abs_code.length>0">
+                abs_code=#{abs_code},
+            </if>
+            <if test="course_id!=null and course_id.length>0">
+                course_id=#{course_id},
+            </if>
+            <if test="abC_id!=null and abC_id.length>0">
+                abC_id=#{abC_id},
+            </if>
+            <if test="stu_id!=null and stu_id.length>0">
+                stu_id=#{stu_id},
+            </if>
+            <if test="abs_week!=null and abs_week.length>0">
+                abs_week=#{abs_week},
+            </if>
+            <if test="abs_dayOfWeek!=null and abs_dayOfWeek.length>0">
+                abs_dayOfWeek=#{abs_dayOfWeek},
+            </if>
+            <if test="abs_section!=null and abs_section.length>0">
+                abs_section=#{abs_section},
+            </if>
+        </set>
+        WHERE abs_id = #{abs_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_absenteeism where abs_id = #{abs_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="absenteeism">
+        insert into t_absenteeism(abs_code, course_id, abC_id, stu_id, abs_week, abs_dayOfWeek, abs_section)
+        VALUES (#{abs_code},#{course_id},#{abC_id},#{stu_id},#{abs_week},#{abs_dayOfWeek},#{abs_section})
+    </insert>
+    <!--查询所有-->
+</mapper>

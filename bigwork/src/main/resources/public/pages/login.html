@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8"/>
+    <title>登录</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+
+
+</head>
+
+<body>
+<div id="app">
+    <div style="width: 400px;margin-left:400px;margin-top:100px;padding: 10px; border-radius: 10px">
+
+        <h1>登录Login</h1>
+        <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="60px" class="demo-ruleForm">
+            <el-form-item label="账号" prop="code">
+                <el-input v-model="ruleForm.code"></el-input>
+            </el-form-item>
+            <el-form-item label="密码" prop="pwd">
+                <el-input type="password" v-model="ruleForm.pwd"></el-input>
+                <el-button type="text" @click="forgetPwd()">
+                    <span style="color: #909399;">忘记密码？</span>
+                </el-button>
+            </el-form-item>
+            <el-form-item label="角色" prop="role">
+                <el-radio-group v-model="ruleForm.role">
+                    <el-radio label="教师" value="teacher"></el-radio>
+                    <el-radio label="学生" value="student"></el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item>
+                <el-button type="primary" @click="submitForm('ruleForm')">登录</el-button>
+                <el-button @click="resetForm('ruleForm')">重置</el-button>
+            </el-form-item>
+        </el-form>
+        <!-- 重置密码标签弹层 -->
+        <div class="add-form">
+            <el-dialog title="重置密码" :visible.sync="dialogFormVisible4RestPwd">
+                <el-form ref="formData" status-icon :model="formData" :rules="rules" label-position="right"
+                         label-width="100px">
+                    <el-form-item label="账号" prop="code">
+                        <el-input v-model="formData.code"></el-input>
+                    </el-form-item>
+                    <el-form-item label="姓名" prop="name">
+                        <el-input v-model="formData.name" ></el-input>
+                    </el-form-item>
+                    <el-form-item label="出生日期" prop="birthday">
+                        <el-date-picker
+                                v-model="formData.birthday"
+                                type="date"
+                                placeholder="选择日期"
+                                format="yyyy-MM-dd"
+                                value-format="yyyy-MM-dd">
+                        </el-date-picker>
+                    </el-form-item>
+                    <el-form-item label="角色" prop="role">
+                        <el-radio-group v-model="formData.role">
+                            <el-radio label="教师" value="teacher"></el-radio>
+                            <el-radio label="学生" value="student"></el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="dialogFormVisible4RestPwd = false">取消</el-button>
+                    <el-button type="primary" @click="restPwd('formData')">确定</el-button>
+                </div>
+            </el-dialog>
+        </div>
+    </div>
+
+</div>
+</body>
+<script src="../js/vue.js"></script>
+<script src="../js/index.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../js/jquery.min.js"></script>
+<script src="../js/jquery.cookie.js"></script>
+<script>
+
+    new Vue({
+        el: "#app",
+        data: {
+            ruleForm: {
+                code: '',
+                pwd: '',
+                role: ''
+            },
+            formData: {},
+            dialogFormVisible4RestPwd: false,
+            rules: {
+                code: [
+                    {required: true, message: '请输入账号', trigger: 'blur'},
+                    {min: 6, max: 12, message: '长度在 6 到 12 个字符', trigger: 'blur'}
+                ],
+                pwd: [
+                    {required: true, message: '请输入密码', trigger: 'blur'}
+                ],
+                role: [
+                    {required: true, message: '请选择角色', trigger: 'change'}
+                ],
+                name: [
+                    {required: true, message: '请输入姓名', trigger: 'change'}
+                ],
+                birthday: [
+                    {required: true, message: '请选择出生日期', trigger: 'change'}
+                ]
+            },
+        },
+        created() {
+            $.cookie('loginUser', null);
+        },
+        methods: {
+            //重置表单
+            restForm(){
+                this.formData={};
+            },
+            //弹出重置密码对话框
+            forgetPwd(){
+                this.restForm();
+                if (this.ruleForm.code!==''){
+                    this.formData.code=this.ruleForm.code;
+                }
+                if (this.ruleForm.role!==''){
+                    this.formData.role=this.ruleForm.role;
+                }
+                this.dialogFormVisible4RestPwd=true;
+            },
+            //重置密码
+            restPwd(formName){
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        axios.post("../user/restPwd", this.formData).then(res => {
+                            this.dialogFormVisible4RestPwd = false;
+                            if (res.data.flag) {
+                                this.ruleForm.code = this.formData.code;
+                                this.ruleForm.pwd = this.formData.code;
+                                this.ruleForm.role = this.formData.role;
+                                this.$message({type: "success", message: res.data.message});
+                            } else {
+                                this.$message({type: "warning", message: res.data.message});
+                            }
+                        })
+                    }
+                });
+            },
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        var userLogin = {
+                            'code': this.ruleForm.code,
+                            'pwd': this.ruleForm.pwd,
+                            'role': this.ruleForm.role
+                        };
+                        axios.post('../user/login', userLogin
+                        ).then((res) => {
+                            if (res.data.flag) {
+                                this.$message("success", res.data.message);
+                                window.location = "main.html";
+                            } else {
+                                this.$message({
+                                    type: "error",
+                                    message: res.data.message
+                                });
+                            }
+                        });
+                    }
+
+                });
+
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            }
+
+        }
+    });
+
+</script>
+
+</html>

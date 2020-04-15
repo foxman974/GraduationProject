@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生成绩管理</title>
+    <meta name="description" content="学生成绩管理">
+    <meta name="keywords" content="学生成绩管理">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<style>
+    .avatar-uploader .el-upload {
+        border: 1px dashed #d9d9d9;
+        border-radius: 6px;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .avatar-uploader .el-upload:hover {
+        border-color: #409EFF;
+    }
+
+    .avatar-uploader-icon {
+        font-size: 28px;
+        color: #8c939d;
+        width: 178px;
+        height: 178px;
+        line-height: 178px;
+        text-align: center;
+    }
+
+    .avatar {
+        width: 178px;
+        height: 178px;
+        display: block;
+    }
+</style>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>教师模块
+            <small>个人信息</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>教师模块</el-breadcrumb-item>
+            <el-breadcrumb-item>个人信息</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+
+        <div class="box">
+            <el-row style="line-height: 30px">
+                <el-col :span="8">
+                    <h1>个人档案</h1>
+                </el-col>
+
+            </el-row>
+            <el-row style="line-height: 50px">
+                <el-col :span="6">
+                    <el-upload
+                            class="avatar-uploader"
+                            action="../student/changePortrait"
+                            :data="loginUser"
+                            :show-file-list="false"
+                            :auto-upload="auto"
+                            :on-success="handleAvatarSuccess"
+                            :before-upload="beforeAvatarUpload">
+                        <img v-if="imageUrl" :src="imageUrl" class="avatar">
+                        <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+                    </el-upload>
+                </el-col>
+                <el-col :span="6">姓名：{{loginUser.username}}</el-col>
+                <el-col :span="6">工号：{{loginUser.code}}</el-col>
+                <el-col :span="6">职称：{{loginUser.level}}</el-col>
+                <el-col :span="6">性别：{{ loginUser.sex == '1' ? '男' : '女'}}</el-col>
+                <el-col :span="6">民族：汉族</el-col>
+                <el-col :span="6">出生年月：{{loginUser.birthday}}</el-col>
+                <el-col :span="6" v-if="loginUser.academy">学院编号：{{loginUser.academy.academy_code}}</el-col>
+                <el-col :span="6" v-if="loginUser.academy">学院名称：{{loginUser.academy.academy_name}}</el-col>
+                <el-col :span="6" v-if="loginUser.major">专业编号：{{loginUser.major.major_code}}</el-col>
+                <el-col :span="6" v-if="loginUser.major">专业名称：{{loginUser.major.major_name}}</el-col>
+            </el-row>
+        </div>
+
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery.cookie.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue=new Vue({
+        el: '#app',
+        data() {
+            return {
+                loginUser: {},//表单数据
+                imageUrl: "",
+                auto:'',
+            }
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.getLoginTeacher();
+        },
+        methods: {
+            //获取当前已登录的教师用户
+            getLoginTeacher() {
+                axios.get("/user/getLoginUser").then((response) => {
+                    // 返回结果Result(flag,message,data)
+                    if (response.data.flag) {
+                        if (response.data.message === "teacher") {
+                            this.loginUser.username = response.data.data.teac_name;
+                            this.loginUser.password = response.data.data.teac_pwd;
+                            this.loginUser.code = response.data.data.teac_code;
+                            this.loginUser.id = response.data.data.teac_id;
+                            this.loginUser.sex = response.data.data.stu_sex;
+                            this.loginUser.birthday = response.data.data.teac_birthday;
+                            this.loginUser.level = response.data.data.teac_level;
+                            this.loginUser.major = response.data.data.major;
+                            this.loginUser.major.major_name = response.data.data.major.major_name;
+                            this.loginUser.major.major_code = response.data.data.major.major_code;
+                            this.loginUser.academy = response.data.data.academy;
+                            this.loginUser.academy.academy_name = response.data.data.academy.academy_name;
+                            this.loginUser.academy.academy_code = response.data.data.academy.academy_code;
+                        }
+                    }
+                    this.imageUrl = "../uploads/headPortrait/" + this.loginUser.code + "_headPortrait.jpg"
+                });
+            },
+            handleAvatarSuccess(res, file) {
+                this.imageUrl = URL.createObjectURL(file.raw);
+            },
+            beforeAvatarUpload(file) {
+                const isJPG = file.type === 'image/jpeg';
+
+                const isLt2M = file.size / 1024 / 1024 < 2;
+
+                if (!isJPG) {
+                    this.$message.error('上传头像图片只能是 JPG或PNG 格式!');
+                }
+                if (!isLt2M) {
+                    this.$message.error('上传头像图片大小不能超过 2MB!');
+                }
+                return isJPG && isLt2M;
+            }
+        }
+    })
+
+
+</script>
+</html>

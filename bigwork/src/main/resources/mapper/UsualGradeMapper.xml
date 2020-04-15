@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.UsualGradeMapper">
+    <insert id="insert" parameterType="usualGrade">
+        insert into t_usualgrade(stu_id,course_id) values (#{stu_id},#{course_id})
+    </insert>
+    <select id="findPage" parameterType="string" resultMap="usualGradeMap">
+        select * from
+        t_usualgrade tu left join t_student ts on tu.stu_id = ts.stu_id
+        left join t_course tc on tu.course_id = tc.course_id
+        <if test="value!=null and value.length>0">
+        where ts.stu_name=#{value} or ts.stu_code=#{value}
+        </if>
+    </select>
+    <select id="findAll" parameterType="string" resultMap="usualGradeMap">
+        select tu.*,ts.stu_name,ts.stu_code,tc.* from
+        t_usualgrade tu left join t_student ts on tu.stu_id = ts.stu_id
+        left join t_course tc on tu.course_id = tc.course_id
+    </select>
+    <update id="update" parameterType="usualGrade">
+        update
+        t_usualgrade tu
+        <set>
+            <if test="abs_point!=null and abs_point.length>0">
+                tu.abs_point = #{abs_point},
+            </if>
+            <if test="que_point!=null and que_point.length>0">
+                tu.que_point = #{que_point},
+            </if>
+            <if test="task_point!=null and task_point.length>0">
+                tu.task_point = #{task_point},
+            </if>
+            <if test="other_point!=null and other_point.length>0">
+                tu.other_point = #{other_point},
+            </if>
+            <if test="all_point!=null and all_point.length>0">
+                tu.all_point = #{all_point},
+            </if>
+        </set>
+        where tu.stu_id = #{stu_id} and tu.course_id=#{course_id}
+    </update>
+    <resultMap id="usualGradeMap" type="usualGrade" autoMapping="true">
+        <association property="student" javaType="student" autoMapping="true">
+            <id property="stu_id" column="stu_id"/>
+            <result property="stu_name" column="stu_name"/>
+            <result property="stu_code" column="stu_code"/>
+        </association>
+        <association property="course" javaType="course" autoMapping="true">
+            <id property="course_id" column="course_id"/>
+            <result property="course_code" column="course_code"/>
+            <result property="course_name" column="course_name"/>
+        </association>
+    </resultMap>
+</mapper>

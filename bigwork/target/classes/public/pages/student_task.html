@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 页面meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>学生成绩管理</title>
+    <meta name="description" content="学生成绩管理">
+    <meta name="keywords" content="学生成绩管理">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" name="viewport">
+
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/elementui/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="hold-transition">
+<div id="app">
+    <div class="content-header">
+        <h1>个人模块
+            <small>作业管理</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>个人模块</el-breadcrumb-item>
+            <el-breadcrumb-item>作业管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+    <div class="app-container">
+        <div class="box">
+            <el-tabs v-model="activeName" @tab-click="handleClick" type="border-card">
+                <el-tab-pane label="待完成" name="first">
+                    <h2>待完成</h2>
+                    <div class="filter-container">
+                        <el-input placeholder="课程名/题目内容" v-model="pagination.queryString" style="width: 200px;"
+                                  class="filter-item"></el-input>
+                        <el-button @click="handleCurrentChange1(1)" class="dalfBut">查询</el-button>
+                    </div>
+                    <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                        <el-table-column type="index" align="center" label="序号"></el-table-column>
+                        <el-table-column prop="course.course_name" label="课程名" align="center"></el-table-column>
+                        <el-table-column prop="task.task_code" label="作业编号" align="center"></el-table-column>
+
+                        <el-table-column label="操作" align="center">
+                            <template slot-scope="scope">
+                                <el-button type="primary" size="mini" @click="handleCreate(scope.row)">查看详情</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination-container">
+                        <el-pagination
+                                class="pagiantion"
+                                @current-change="handleCurrentChange"
+                                :current-page="pagination.currentPage"
+                                :page-size="pagination.pageSize"
+                                layout="total, prev, pager, next, jumper"
+                                :total="pagination.total">
+                        </el-pagination>
+                    </div>
+                </el-tab-pane>
+
+                <el-tab-pane label="已完成" name="second">
+                    <h2>已完成</h2>
+                    <div class="filter-container">
+                        <el-input placeholder="课程名/题目内容" v-model="pagination.queryString" style="width: 200px;"
+                                  class="filter-item"></el-input>
+                        <el-button @click="handleCurrentChange1(1)" class="dalfBut">查询</el-button>
+                    </div>
+                    <el-table size="small" current-row-key="id" :data="dataList" stripe highlight-current-row>
+                        <el-table-column type="index" align="center" label="序号"></el-table-column>
+                        <el-table-column prop="course.course_name" label="课程名" align="center"></el-table-column>
+                        <el-table-column prop="task.task_code" label="作业编号" align="center"></el-table-column>
+                        <el-table-column label="操作" align="center">
+                            <template slot-scope="scope">
+                                <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">修改答案</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+                    <div class="pagination-container">
+                        <el-pagination
+                                class="pagiantion"
+                                @current-change="handleCurrentChange"
+                                :current-page="pagination.currentPage"
+                                :page-size="pagination.pageSize"
+                                layout="total, prev, pager, next, jumper"
+                                :total="pagination.total">
+                        </el-pagination>
+                    </div>
+                </el-tab-pane>
+
+            </el-tabs>
+            <!-- 提交答案标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="提交答案" :visible.sync="dialogFormVisible4Add">
+                    <el-row style="height: 100px">
+                        <el-col :span="4" >
+                            <span>作业内容：</span>
+                        </el-col>
+                        <el-col :span="12">
+                            {{task_content}}
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="4" >
+                            <span>上传图片：</span>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-upload
+                                    class="upload-demo"
+                                    ref="upload"
+                                    drag
+                                    :data="taskData"
+                                    action="../stuTask/upload"
+                                    :file-list="fileList"
+                                    :auto-upload="false"
+                                    :on-preview="handlePreview"
+                                    :on-remove="handleRemove">
+                                <i class="el-icon-upload"></i>
+                                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                                <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+                            </el-upload>
+                        </el-col>
+                    </el-row>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+            <!-- 修改答案标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="修改答案" :visible.sync="dialogFormVisible4Edit">
+                    <el-row style="height: 100px">
+                        <el-col :span="4" >
+                            <span>作业内容：</span>
+                        </el-col>
+                        <el-col :span="12">
+                            {{task_content}}
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col :span="4" >
+                            <span>上传图片：</span>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-upload
+                                    class="upload-demo"
+                                    ref="upload"
+                                    drag
+                                    :data="taskData"
+                                    action="../stuTask/upload"
+                                    multiple
+                                    :file-list="fileList"
+                                    :auto-upload="false"
+                                    :on-preview="handlePreview"
+                                    :on-remove="handleRemove">
+                                <i class="el-icon-upload"></i>
+                                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                                <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+                            </el-upload>
+                        </el-col>
+                    </el-row>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<!-- 引入组件库 -->
+<script src="../js/vue.js"></script>
+<script src="../plugins/elementui/index.js"></script>
+<script type="text/javascript" src="../js/jquery.min.js"></script>
+<script type="text/javascript" src="../js/jquery.cookie.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script>
+    var vue = new Vue({
+        el: '#app',
+        data: {
+            pagination: {//分页相关模型数据
+                currentPage: 1,//当前页码
+                pageSize: 7,//每页显示的记录数
+                total: 0,//总记录数
+                queryString: null//查询条件
+            },
+            dataList: [],//当前页要展示的分页列表数据
+            dialogFormVisible4Add: false,
+            dialogFormVisible4Edit: false,//编辑表单是否可见
+            activeName: "first",
+            taskData: {},
+            task_content:'',
+            fileList: []
+
+        },
+        //钩子函数，VUE对象初始化完成后自动执行
+        created() {
+            this.findPage1();
+
+
+        },
+        methods: {
+            //上传
+            submitUpload() {
+                this.$refs.upload.submit();
+                if (this.dialogFormVisible4Add) {
+
+                    this.dialogFormVisible4Add = false;
+                    this.findPage1();
+                    this.$message({
+                        message: '答案上传成功',
+                        type: 'success'
+                    });
+
+                }
+                if (this.dialogFormVisible4Edit) {
+                    this.dialogFormVisible4Edit = false;
+                    this.findPage2();
+                    this.$message({
+                        message: '答案修改成功',
+                        type: 'success'
+                    });
+
+                }
+
+
+
+            },
+            //分页查询未完成作业
+            findPage1() {
+                // 查询分页结果数据
+                // 初始化页面
+                var params = {
+                    "currentPage": this.pagination.currentPage,
+                    "pageSize": this.pagination.pageSize,
+                    "queryString": this.pagination.queryString
+                };
+
+                axios.post("/stuTask/findPage1", params).then((response) => {
+                    // 将响应的结果给页面数据
+                    // 总记录数
+                    this.pagination.total = response.data.total;
+                    // 封装结果集
+                    this.dataList = response.data.rows;
+                })
+            },
+            //分页查询已完成作业
+            findPage2() {
+                // 查询分页结果数据
+                // 初始化页面
+                var params = {
+                    "currentPage": this.pagination.currentPage,
+                    "pageSize": this.pagination.pageSize,
+                    "queryString": this.pagination.queryString
+                };
+
+                axios.post("/stuTask/findPage2", params).then((response) => {
+                    // 将响应的结果给页面数据
+                    // 总记录数
+                    this.pagination.total = response.data.total;
+                    // 封装结果集
+                    this.dataList = response.data.rows;
+                })
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+            },
+            // 弹出提交答案窗口
+            handleCreate(row) {
+                console.log(row);
+                console.log("-------------");
+
+                this.taskData.task_id=row.task_id;
+                this.taskData.task_code=row.task.task_code;
+                this.taskData.course_id=row.course_id;
+                console.log(this.task_id);
+                this.task_content=row.task.task_title;
+                console.log(this.task_content);
+                // 显示提交答案窗口
+                this.dialogFormVisible4Add = true;
+                // 重置表单
+                this.resetForm();
+            },
+            // 弹出修改答案窗口
+            handleUpdate(row) {
+                console.log(row);
+                console.log("-------------");
+
+                this.taskData.task_id=row.task_id;
+                this.taskData.task_code=row.task.task_code;
+                console.log(this.task_code);
+                this.task_content=row.task.task_title;
+                console.log(this.task_content);
+                // 显示编辑窗口
+                this.dialogFormVisible4Edit = true;
+
+
+            },
+            //切换页码
+            handleCurrentChange(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 条件置空
+                this.pagination.queryString = "";
+                // 查询
+                this.findPage();
+            },
+            //切换页码
+            handleCurrentChange1(currentPage) {
+                //alert(currentPage);
+                // 当前页赋值
+                this.pagination.currentPage = currentPage;
+                // 查询
+                this.findPage1();
+            },
+            handleClick(tab, event) {
+                if (tab.name==="first"){
+                    this.findPage1();
+                } else if(tab.name==="second"){
+                    this.findPage2();
+                }
+                console.log(tab, event);
+            },
+            handleRemove(file, fileList) {
+                console.log(file, fileList);
+            },
+            handlePreview(file) {
+                console.log(file);
+            }
+
+        }
+    });
+
+
+</script>
+</html>

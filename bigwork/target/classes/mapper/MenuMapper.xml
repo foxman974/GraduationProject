@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.MenuMapper">
+    <select id="getMenuList" resultMap="menuMap" parameterType="string">
+        select * from t_menu where t_menu.level = 1 and description not like #{%keyword%}
+    </select>
+    <resultMap id="menuMap" type="menu" autoMapping="true">
+        <id property="id" column="id"/>
+        <result property="parentMenuId" column="parentMenuId"/>
+        <collection property="children" column="id" select="com.foxman.mapper.MenuMapper.findChildenMenu"/>
+    </resultMap>
+
+    <select id="findChildenMenu" resultType="menu" parameterType="int">
+        select * from t_menu where parentMenuId=#{id}
+    </select>
+</mapper>

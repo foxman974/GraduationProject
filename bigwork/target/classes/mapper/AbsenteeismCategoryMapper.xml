@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.AbsenteeismCategoryMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultType="absenteeismcategory" parameterType="string">
+            select * from t_absenteeismcategory
+            <if test="value!=null and value.length>0">
+                where abC_code = #{value} or abC_category = #{value}
+            </if>
+    </select>
+    <!--根据id查询缺勤类型-->
+    <select id="findById" parameterType="string" resultType="absenteeismcategory">
+        select * from t_absenteeismcategory where abC_id = #{id}
+    </select>
+    <!--修改-->
+    <update id="update" parameterType="absenteeismcategory">
+        UPDATE
+        t_absenteeismcategory
+        <set>
+            <if test="abC_code!=null and abC_code.length>0">
+                abC_code = #{abC_code},
+            </if>
+            <if test="abC_category!=null and abC_category.length>0">
+                abC_category = #{abC_category},
+            </if>
+            <if test="abC_deductMarks!=null">
+                abC_deductMarks = #{abC_deductMarks},
+            </if>
+        </set>
+        WHERE abC_id = #{abC_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_absenteeismcategory where abC_id = #{abC_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="absenteeismcategory">
+        insert into t_absenteeismcategory(abC_code, abC_category,abC_deductMarks) VALUES (#{abC_code},#{abC_category},#{abC_deductMarks})
+    </insert>
+    <!--查询所有-->
+    <select id="findAll" resultType="absenteeismCategory">
+        select * from t_absenteeismcategory
+    </select>
+</mapper>

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.TeacherMapper">
+
+    <!--登陆-->
+    <select id="selectTeacher" parameterType="teacher" resultMap="teachermap">
+        select tt.teac_id, tt.teac_code, tt.teac_name, tt.teac_sex, tt.teac_birthday, tt.teac_level,tt.academy_id,tt.major_id,
+               tm.major_code,tm.major_name,ta.academy_code,ta.academy_name
+        from t_teacher tt , t_major tm , t_academy ta
+        where tt.major_id=tm.major_id and tt.academy_id = ta.academy_id
+        and tt.teac_code=#{teac_code} and tt.teac_pwd = #{teac_pwd}
+    </select>
+
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="teachermap" parameterType="string">
+        select tt.teac_id, tt.teac_code, tt.teac_name, tt.teac_sex, tt.teac_birthday, tt.teac_level,tt.academy_id,tt.major_id,
+        tm.major_code,tm.major_name,ta.academy_code,ta.academy_name
+        from t_teacher tt , t_major tm , t_academy ta where tt.major_id=tm.major_id and tt.academy_id = ta.academy_id
+        <if test="value!=null and value.length>0">
+            and tt.teac_code = #{value} or tt.teac_name = #{value}
+        </if>
+    </select>
+    <resultMap id="teachermap" type="teacher">
+        <id property="teac_id" column="teac_id"/>
+        <result property="teac_code" column="teac_code"/>
+        <result property="teac_name" column="teac_name"/>
+        <result property="teac_sex" column="teac_sex"/>
+        <result property="teac_birthday" column="teac_birthday"/>
+        <result property="teac_level" column="teac_level"/>
+        <result property="major_id" column="academy_id"/>
+        <result property="academy_id" column="academy_id"/>
+        <association property="academy" javaType="academy">
+            <id property="academy_id" column="academy_id"/>
+            <result property="academy_code" column="academy_code"/>
+            <result property="academy_name" column="academy_name"/>
+        </association>
+        <association property="major" javaType="major">
+            <id property="major_id" column="major_id"/>
+            <result property="major_code" column="major_code"/>
+            <result property="major_name" column="major_name"/>
+        </association>
+    </resultMap>
+    <!--根据id查询教师-->
+    <select id="findById" parameterType="string" resultType="teacher">
+        select * from t_teacher where teac_id = #{teac_id}
+    </select>
+    <!--修改-->
+    <update id="update" parameterType="teacher">
+        UPDATE
+        t_teacher
+        <set>
+            <if test="teac_code!=null and teac_code.length>0">
+                teac_code = #{teac_code},
+            </if>
+            <if test="teac_name!=null and teac_name.length>0">
+                teac_name = #{teac_name},
+            </if>
+            <if test="teac_sex!=null and teac_sex.length>0">
+                teac_sex = #{teac_sex},
+            </if>
+            <if test="teac_birthday!=null and teac_birthday.length>0">
+                teac_birthday = #{teac_birthday},
+            </if>
+            <if test="teac_level!=null and teac_level.length>0">
+                teac_level = #{teac_level},
+            </if>
+            <if test="academy_id!=null and academy_id.length>0">
+                academy_id = #{academy_id},
+            </if>
+            <if test="major_id!=null and major_id.length>0">
+                major_id = #{major_id},
+            </if>
+            <if test="teac_pwd!=null and teac_pwd.length>0">
+                teac_pwd = #{teac_pwd},
+            </if>
+        </set>
+        WHERE teac_id = #{teac_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_teacher where teac_id = #{teac_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="teacher">
+        insert into t_teacher(teac_code, teac_name, teac_sex, teac_birthday,
+                              teac_level, academy_id, major_id, teac_pwd)
+                              VALUES (#{teac_code}, #{teac_name}, #{teac_sex},
+                                      #{teac_birthday}, #{teac_level},#{academy_id}, #{major_id}, #{teac_pwd})
+    </insert>
+    <!--根据学院id删除教师-->
+    <delete id="deleteByAcademyId" parameterType="string">
+        delete from t_teacher where academy_id = #{academy_id}
+    </delete>
+    <!--根据专业id删除教师-->
+    <delete id="deleteByMajorId" parameterType="string">
+        delete from t_teacher where major_id = #{major_id}
+    </delete>
+    <!--根据工号、姓名、生日查询教师-->
+    <select id="checkTeacherByCodeAndNameAndBirthday" resultType="teacher" parameterType="teacher">
+        select teac_id,teac_code from t_teacher
+        <where>
+            <if test="teac_code!=null and teac_code.length>0">
+                and teac_code=#{teac_code}
+            </if>
+            <if test="teac_name!=null and teac_name.length>0">
+                and teac_name=#{teac_name}
+            </if>
+            <if test="teac_birthday!=null and teac_birthday.length>0">
+                and teac_birthday=#{teac_birthday}
+            </if>
+        </where>
+    </select>
+</mapper>

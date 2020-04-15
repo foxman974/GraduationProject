@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.MajorMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="majorMap" parameterType="string">
+            select * from t_major tm , t_academy ta where tm.academy_id=ta.academy_id
+            <if test="value!=null and value.length>0">
+                and tm.major_code = #{value} or tm.major_name = #{value}
+            </if>
+    </select>
+    <resultMap id="majorMap" type="major">
+        <id property="major_id" column="major_id"/>
+        <result property="major_code" column="major_code"/>
+        <result property="major_name" column="major_name"/>
+        <result property="academy_id" column="academy_id"/>
+        <association property="academy" javaType="academy">
+            <id property="academy_id" column="academy_id"/>
+            <result property="academy_code" column="academy_code"/>
+            <result property="academy_name" column="academy_name"/>
+        </association>
+    </resultMap>
+    <!--根据id查询专业-->
+    <select id="findById" parameterType="string" resultType="major">
+        select * from t_major where major_id = #{major_id}
+    </select>
+    <!--修改-->
+    <update id="update" parameterType="major">
+        UPDATE
+            t_major
+        <set>
+            <if test="major_code!=null and major_code.length>0">
+                major_code = #{major_code},
+            </if>
+            <if test="major_name!=null and major_name.length>0">
+                major_name = #{major_name},
+            </if>
+            <if test="academy_id!=null and academy_id.length>0">
+                academy_id = #{academy_id},
+            </if>
+        </set>
+
+        WHERE major_id = #{major_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_major where major_id = #{major_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="major">
+        insert into t_major(major_code, major_name,academy_id) VALUES (#{major_code},#{major_name},#{academy_id})
+    </insert>
+    <!--根据学院id删除专业-->
+    <delete id="deleteByAcademyId" parameterType="string">
+        delete from t_major where academy_id = #{academy_id}
+    </delete>
+</mapper>

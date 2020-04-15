@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>主页面</title>
+
+</head>
+<!-- 引入样式 -->
+<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+<!-- 引入组件库 -->
+<script src="/js/vue.js"></script>
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+<script src="/js/axios-0.18.0.js"></script>
+<style>
+    .el-header {
+        background-color: #ffffff;
+        color: #333;
+        line-height: 60px;
+    }
+
+    .el-aside {
+        background-color: #D3DCE6;
+        color: #333;
+        text-align: center;
+        line-height: 200px;
+    }
+
+    .el-main {
+        background-color: #E9EEF3;
+        color: #333;
+        text-align: center;
+        line-height: 160px;
+        padding: 0px;
+    }
+
+    body > .el-container {
+        margin-bottom: 40px;
+    }
+
+    .el-container:nth-child(5) .el-aside,
+    .el-container:nth-child(6) .el-aside {
+        line-height: 260px;
+    }
+
+    .el-container:nth-child(7) .el-aside {
+        line-height: 320px;
+    }
+
+    .el-menu-vertical-demo:not(.el-menu--collapse) {
+        width: 199px;
+        min-height: 488px;
+    }
+
+    a:link {
+        text-decoration: none;
+        color: black;
+    }
+
+    a:visited {
+        text-decoration: none;
+        color: black;
+
+    }
+
+    a:hover {
+        text-decoration: none;
+        color: black;
+
+    }
+
+    a:active {
+        text-decoration: none;
+        color: black;
+
+    }
+    .el-row {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        line-height: 10px;
+
+    }
+
+</style>
+<body>
+<div id="app">
+    <el-container>
+        <el-header><img src="../img/top.jpg" height="60px" width="700px"/>
+            <div style="float: right">
+                <el-row :gutter="20" style="margin-bottom: 10px">
+                    <el-col :span="24" style="font-size: 14px">
+                        姓名：{{loginUser.username}}
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20" >
+                    <el-col :span="24"  style="font-size: 14px">
+                        工/学号：{{loginUser.code}}
+                    </el-col>
+                </el-row>
+                <el-row :gutter="20">
+                    <el-col :span="24">
+                        <el-button type="text" @click="logout()">
+                            <span style="font-family: 'Microsoft YaHei';color: #909399;">退出登录</span>
+                        </el-button>
+                        <el-button type="text" @click="updatePwd()">
+                            <span style="font-family: 'Microsoft YaHei';color: #909399;">修改密码</span>
+                        </el-button>
+                    </el-col>
+                </el-row>
+
+            </div>
+            <!-- 编辑标签弹层 -->
+            <div class="add-form">
+                <el-dialog title="修改密码" :visible.sync="dialogFormVisible4EditPwd">
+                    <el-form ref="formData" status-icon :model="formData" :rules="rules" label-position="right"
+                             label-width="100px">
+                        <el-form-item label="原密码" prop="oldPwd">
+                            <el-input type="password"
+                                      v-model="formData.oldPwd"
+                                      placeholder="请输入原密码"
+                                      autocomplete="off"
+                                      show-password
+                                      clearable>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item label="新密码" prop="newPwd">
+                            <el-input type="password"
+                                      v-model="formData.newPwd"
+                                      placeholder="请输入新密码"
+                                      autocomplete="off"
+                                      show-password
+                                      clearable>
+                            </el-input>
+                        </el-form-item>
+                        <el-form-item label="确认密码" prop="rePwd">
+                            <el-input type="password"
+                                      v-model="formData.rePwd"
+                                      placeholder="请再次输入新密码"
+                                      autocomplete="off"
+                                      show-password
+                                      clearable>
+                            </el-input>
+                        </el-form-item>
+                    </el-form>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click="dialogFormVisible4EditPwd = false">取消</el-button>
+                        <el-button type="primary" @click="handleEdit()">确定</el-button>
+                    </div>
+                </el-dialog>
+            </div>
+        </el-header>
+        <el-container>
+            <el-aside width="200px" style="height: 600px">
+                <el-col :span="12">
+                    <el-menu
+                            default-active="2"
+                            class="el-menu-vertical-demo"
+                            @open="handleOpen"
+                            @close="handleClose"
+                            collapse-transition>
+                        <el-submenu :index="menu.path" v-for="menu in menuList">
+                            <template slot="title">
+                                <i :class="menu.icon"></i>
+                                <span>{{menu.name}}</span>
+                            </template>
+                            <template v-for="child in menu.children">
+                                <el-menu-item :index="child.path">
+                                    <a :href="child.linkUrl" target="right">{{child.name}}</a>
+                                </el-menu-item>
+                            </template>
+                        </el-submenu>
+                    </el-menu>
+                </el-col>
+            </el-aside>
+            <el-container>
+                <el-main>
+                    <iframe name="right" class="el-main" src="welcome.html" width="100%" height="100%"
+                            frameborder="0">
+                    </iframe>
+                </el-main>
+            </el-container>
+        </el-container>
+    </el-container>
+
+</div>
+
+</body>
+<script>
+
+    history.go(1);
+    var vue = new Vue({
+        el: "#app",
+        data() {
+            var validatePass = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请输入密码！'));
+                } else if(value === this.formData.oldPwd){
+                    callback(new Error('原密码和新密码不能一样！'));
+                }else {
+                    if (this.formData.rePwd !== '') {
+                        this.$refs.formData.validateField('rePwd');
+                    }
+                    callback();
+                }
+            };
+            var validatePass2 = (rule, value, callback) => {
+                if (value === '') {
+                    callback(new Error('请再次输入密码！'));
+                } else if (value !== this.formData.newPwd) {
+                    callback(new Error('两次输入密码不一致!'));
+                } else {
+                    callback();
+                }
+            };
+            return{
+                loginUser: {},
+                menuList: [],
+                dialogFormVisible4EditPwd: false,//编辑表单是否可见
+                formData:{},
+                auto:'',
+                rules: {
+                    oldPwd:[
+                        {required: true, message: '原密码为必填项', trigger: 'blur'}
+                    ],
+                    newPwd: [
+                        { validator: validatePass, trigger: 'blur' },
+                        {required: true, message: '新密码为必填项', trigger: 'blur'}
+                    ],
+                    rePwd: [
+                        { validator: validatePass2, trigger: 'blur' },
+                        {required: true, message: '确认密码为必填项', trigger: 'blur'}
+                    ]
+
+                }
+            }
+        },
+        methods: {
+            handleOpen(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            handleClose(key, keyPath) {
+                console.log(key, keyPath);
+            },
+            tips() {
+                this.$alert('您还未登录，请登陆后再使用！', '提示', {
+                    confirmButtonText: '登陆',
+                    callback: action => {
+                        window.location.href = "login.html";
+                        this.$message({
+                            type: 'info',
+                            message: `action: ${"正在跳转到登陆页面..."}`
+                        });
+                    }
+                });
+            },
+            //登出
+            logout(){
+                axios.post("../user/logout").then(res=>{
+                    if (res.data.flag) {
+                        this.$message({
+                            type:"success",
+                            message:res.data.message
+                        });
+                        window.location.assign("login.html")
+                    }else{
+                        this.$message({
+                            type:"warning",
+                            message:res.data.message
+                        });
+                    }
+                })
+            },
+            // 弹出修改密码窗口
+            updatePwd() {
+                // 弹出窗口
+                alert("1");
+                this.dialogFormVisible4EditPwd = true;
+                // 重置表单
+                this.resetForm();
+            },
+            // 重置表单
+            resetForm() {
+                this.formData = {};
+            },
+            //修改密码
+            handleEdit() {
+                this.$refs["formData"].validate((valid) => {
+                    if (valid) {
+                        this.formData.code=this.loginUser.code;
+                        axios.post("../student/editPwd", this.formData).then((response) => {
+
+                            if (response.data.flag) {
+                                // 关闭页面
+                                this.dialogFormVisible4EditPwd = false;
+                                this.$message.success(response.data.message);
+                                this.logout();
+                            } else {
+                                this.$message.error(response.data.message);
+                            }
+                        }).catch((error) => {
+
+                        }).finally(() => {
+
+                        })
+                    } else {
+                        this.$message.error("表单校验有误！不能提交");
+                        return false; // 不提交，输出校验的内容
+                    }
+                })
+            },
+        },
+        created: function () {
+            axios.get("/user/getLoginUser").then((response) => {
+                // 返回结果Result(flag,message,data)
+                if (response.data.flag) {
+                    if (response.data.message === "student") {
+                        this.loginUser.username = response.data.data.stu_name;
+                        this.loginUser.password = response.data.data.stu_pwd;
+                        this.loginUser.code = response.data.data.stu_code;
+                        this.loginUser.id = response.data.data.stu_id;
+                        this.loginUser.birthday = response.data.data.stu_birthday;
+                        this.loginUser.nativePlace = response.data.data.stu_nativePlace;
+                        this.loginUser.sex = response.data.data.stu_sex;
+                        this.loginUser.classId = response.data.data.class_id;
+                    } else {
+                        this.loginUser.username = response.data.data.teac_name;
+                        this.loginUser.password = response.data.data.teac_pwd;
+                        this.loginUser.code = response.data.data.teac_code;
+                        this.loginUser.id = response.data.data.teac_id;
+                        this.loginUser.level = response.data.data.teac_level;
+                        this.loginUser.academyId = response.data.data.academy_id;
+                        this.loginUser.majorId = response.data.data.major_id;
+                        this.loginUser.sex = response.data.data.teac_sex;
+                        this.loginUser.birthday = response.data.data.teac_birthday;
+                    }
+
+
+                } else {
+                    this.username = "未知姓名";
+                    this.tips();
+                }
+            }).catch((error) => {
+
+            });
+            //用户认证完成之后
+            axios.post("/menu/getMenu").then((response) => {
+
+                vue.menuList = response.data.data;
+                this.$router.push({
+                    path: "/result",
+                    query: {code: '201620180309'}
+                });
+            }).catch((error) => {
+
+            });
+        }
+    });
+</script>
+</html>

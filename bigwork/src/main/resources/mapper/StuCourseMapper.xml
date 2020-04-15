@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.StuCourseMapper">
+    <insert id="chooseCourse" parameterType="map">
+        insert into t_stucourse(stu_id, course_id) values(#{stu_id},#{course_id})
+    </insert>
+    <!--根据课程id查询所有学生-->
+    <select id="getStudentsByCourseId" parameterType="string" resultMap="studentMap">
+        select ts.*,tsc.course_id,tsc.stu_id from t_stucourse tsc, t_student ts
+        where tsc.stu_id=ts.stu_id and tsc.course_id=#{value}
+    </select>
+    <resultMap id="studentMap" type="student">
+        <id property="stu_id" column="stu_id"/>
+        <result property="stu_code" column="stu_code"/>
+        <result property="stu_name" column="stu_name"/>
+        <result property="stu_sex" column="stu_sex"/>
+        <result property="stu_birthday" column="stu_birthday"/>
+        <result property="stu_nativePlace" column="stu_nativePlace"/>
+        <result property="class_id" column="class_id"/>
+    </resultMap>
+</mapper>

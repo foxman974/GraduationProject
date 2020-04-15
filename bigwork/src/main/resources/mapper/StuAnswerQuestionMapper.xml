@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.StuAnswerQuestionMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="saqMap" parameterType="string">
+            select tq.que_code,tc.course_name,tc.course_code,tst.stu_code,tst.stu_name,ts.*
+            from t_stuanswerquestion ts
+                LEFT JOIN t_question tq on ts.que_id = tq.que_id
+                LEFT JOIN t_course   tc on ts.course_id = tc.course_id
+                LEFT JOIN t_student tst on ts.stu_id = tst.stu_id
+            <if test="value!=null and value.length>0">
+                where tq.que_code = #{value} or tst.stu_name = #{value}
+            </if>
+    </select>
+    <resultMap id="saqMap" type="stuAnswerQuestion">
+        <result column="que_id" property="que_id"/>
+        <result column="que_getPoint" property="que_getPoint"/>
+        <result column="stu_id" property="stu_id"/>
+        <result column="course_id" property="course_id"/>
+        <association property="student" javaType="student" autoMapping="true"/>
+        <association property="course" javaType="course" autoMapping="true"/>
+        <association property="question" javaType="question" autoMapping="true"/>
+    </resultMap>
+    <!--根据id查询学院-->
+    <select id="findById" parameterType="string" resultType="academy">
+        select * from t_academy where academy_id = #{id}
+    </select>
+    <!--查询所有-->
+    <select id="findAll" resultMap="academyMap">
+        select ta.academy_id, academy_code, academy_name,
+               tm.major_id, major_code, major_name,
+               tc.class_id, class_code, class_name
+        from (t_academy ta left join t_major tm on ta.academy_id=tm.academy_id ) left join t_classes tc on tc.major_id=tm.major_id
+    </select>
+    <resultMap id="academyMap" type="academy">
+        <id property="academy_id" column="academy_id"/>
+        <result property="academy_code" column="academy_code"/>
+        <result property="academy_name" column="academy_name"/>
+        <collection property="majors" ofType="major">
+            <id property="major_id" column="major_id"/>
+            <result property="major_code" column="major_code"/>
+            <result property="major_name" column="major_name"/>
+            <collection property="classes" ofType="classes">
+                <id property="class_id" column="class_id"/>
+                <result property="class_name" column="class_name"/>
+                <result property="class_code" column="class_code"/>
+                <result property="academy_id" column="academy_id"/>
+                <result property="major_id" column="major_id"/>
+            </collection>
+        </collection>
+    </resultMap>
+    <!--修改-->
+    <update id="update" parameterType="academy">
+        UPDATE
+            t_academy
+        <set>
+            <if test="academy_code!=null and academy_code.length>0">
+                academy_code = #{academy_code},
+            </if>
+            <if test="academy_name!=null and academy_name.length>0">
+                academy_name = #{academy_name},
+            </if>
+        </set>
+
+        WHERE academy_id = #{academy_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_academy where academy_id = #{academy_id}
+    </delete>
+    <!--新增-->
+    <insert id="insert" parameterType="stuAnswerQuestion">
+        insert into t_stuanswerquestion(que_id, que_getPoint, stu_id, course_id)
+        VALUES (#{que_id},#{que_getPoint},#{stu_id},#{course_id})
+    </insert>
+</mapper>

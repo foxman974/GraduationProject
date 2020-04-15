@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.StudentMapper">
+    <select id="selectAllStudent" resultType="student">
+        select * from t_student
+    </select>
+    <select id="selectStudent" resultMap="studentMap" parameterType="student">
+        select ts.* ,tc.*
+        from t_student ts , t_classes tc
+        where ts.class_id=tc.class_id
+          and stu_code=#{stu_code}
+          and stu_pwd=#{stu_pwd}
+    </select>
+    <select id="checkStudentByCodeAndPwd" parameterType="map" resultType="student">
+        select * from t_student where stu_code=#{stu_code} and stu_pwd=#{stu_pwd}
+    </select>
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="studentMap" parameterType="string">
+        select ts.*,tc.class_code,tc.class_name,tc.academy_id,tc.major_id
+        from t_student ts , t_classes tc  where ts.class_id=tc.class_id
+        <if test="value!=null and value.length>0">
+            and (ts.stu_code = #{value} or ts.stu_name = #{value})
+        </if>
+    </select>
+    <!--根据id查询学生-->
+    <select id="findById" parameterType="string" resultMap="studentMap">
+        select ts.*,tc.class_code,tc.class_name,tc.academy_id,tc.major_id
+        from t_student ts , t_classes tc  where ts.class_id=tc.class_id and stu_id = #{stu_id}
+    </select>
+    <resultMap id="studentMap" type="student">
+        <id property="stu_id" column="stu_id"/>
+        <result property="stu_code" column="stu_code"/>
+        <result property="stu_name" column="stu_name"/>
+        <result property="stu_sex" column="stu_sex"/>
+        <result property="stu_birthday" column="stu_birthday"/>
+        <result property="stu_nativePlace" column="stu_nativePlace"/>
+        <result property="class_id" column="class_id"/>
+        <association property="classes" column="class_id"
+                     select="com.foxman.mapper.ClassesMapper.findById">
+            <id property="class_id" column="class_id"/>
+            <result property="class_code" column="class_code"/>
+            <result property="class_name" column="class_name"/>
+            <result property="major_id" column="academy_id"/>
+            <result property="academy_id" column="academy_id"/>
+            <association property="academy" javaType="academy">
+                <id property="academy_id" column="academy_id"/>
+                <result property="academy_code" column="academy_code"/>
+                <result property="academy_name" column="academy_name"/>
+            </association>
+            <association property="major" javaType="major">
+                <id property="major_id" column="major_id"/>
+                <result property="major_code" column="major_id"/>
+                <result property="major_name" column="major_name"/>
+            </association>
+        </association>
+
+    </resultMap>
+
+    <!--修改-->
+    <update id="update" parameterType="student">
+        UPDATE
+        t_student
+        <set>
+            <if test="stu_code!=null and stu_code.length>0">
+                stu_code = #{stu_code},
+            </if>
+            <if test="stu_name!=null and stu_name.length>0">
+                stu_name = #{stu_name},
+            </if>
+            <if test="stu_sex!=null and stu_sex.length>0">
+                stu_sex = #{stu_sex},
+            </if>
+            <if test="stu_birthday!=null and stu_birthday.length>0">
+                stu_birthday = #{stu_birthday},
+            </if>
+            <if test="stu_nativePlace!=null and stu_nativePlace.length>0">
+                stu_nativePlace = #{stu_nativePlace},
+            </if>
+            <if test="class_id!=null and class_id.length>0">
+                class_id = #{class_id},
+            </if>
+            <if test="stu_pwd!=null and stu_pwd.length>0">
+                stu_pwd = #{stu_pwd},
+            </if>
+        </set>
+        WHERE stu_id = #{stu_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_student where stu_id = #{stu_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="student">
+        insert into t_student(stu_code, stu_name, stu_sex, stu_birthday,
+        stu_nativePlace, stu_pwd, class_id)
+        values(#{stu_code}, #{stu_name}, #{stu_sex}, #{stu_birthday}, #{stu_nativePlace},  #{stu_pwd}, #{class_id})
+    </insert>
+    <!--查询所有-->
+    <select id="findAll" resultType="student">
+        select stu_id,stu_name,stu_code from t_student
+    </select>
+    <!--根据班级id删除所有学生-->
+    <delete id="deleteByClassId" parameterType="string">
+        delete from t_student where class_id = #{class_id}
+    </delete>
+    <!--根据学号、姓名、生日查询学生-->
+    <select id="checkStudentByCodeAndNameAndBirthday" parameterType="student" resultType="student">
+        select stu_id,stu_code from t_student
+        <where>
+            <if test="stu_code!=null and stu_code.length>0">
+                and stu_code=#{stu_code}
+            </if>
+            <if test="stu_name!=null and stu_name.length>0">
+                and stu_name=#{stu_name}
+            </if>
+            <if test="stu_birthday!=null and stu_birthday.length>0">
+                and stu_birthday=#{stu_birthday}
+            </if>
+        </where>
+    </select>
+ </mapper>

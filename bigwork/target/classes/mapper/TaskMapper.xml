@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.TaskMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="taskMap" parameterType="string">
+            select tt.*,tc.course_name,tc.course_code from t_task tt,t_course tc
+            <where>
+                tt.course_id=tc.course_id
+                <if test="value!=null and value.length>0">
+                    and task_code = #{value}
+                </if>
+            </where>
+
+    </select>
+    <!--根据id查询作业-->
+    <select id="findById" parameterType="string" resultMap="taskMap">
+        select tt.*,tc.course_name,tc.course_code from t_task tt,t_course tc where tt.course_id=tc.course_id and task_id = #{task_id}
+    </select>
+    <resultMap id="taskMap" type="task">
+        <id property="task_id" column="task_id"/>
+        <result property="task_code" column="task_code"/>
+        <result property="task_title" column="task_title"/>
+        <result property="task_point" column="task_point"/>
+        <result property="course_id" column="course_id"/>
+        <association property="course" javaType="course">
+            <id property="course_id" column="course_id"/>
+            <result property="course_name" column="course_name"/>
+            <result property="course_code" column="course_code"/>
+        </association>
+    </resultMap>
+
+    <!--修改-->
+    <update id="update" parameterType="task">
+        UPDATE
+            t_task
+        <set>
+            <if test="task_code!=null and task_code.length>0">
+                task_code = #{task_code},
+            </if>
+            <if test="task_title!=null and task_title.length>0">
+                task_title = #{task_title},
+            </if>
+            <if test="task_point!=null and task_point.length>0">
+                task_point = #{task_point},
+            </if>
+        </set>
+        WHERE task_id = #{task_id} ;
+    </update>
+    <!--删除<同时删除已布置的作业>-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_task where task_id = #{task_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="task">
+        <selectKey resultType="string" keyProperty="task_id" order="AFTER">
+            select last_insert_id()
+        </selectKey>
+        insert into t_task(task_id,task_code, task_title,task_point,course_id) VALUES (#{task_id},#{task_code},#{task_title},#{task_point},#{course_id})
+    </insert>
+</mapper>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.foxman.mapper.ClassesMapper">
+    <!--使用查询条件，分页查询，注意：当使用if判断的时候，条件只能使用value读取字符串的数据-->
+    <select id="findPage" resultMap="classesMap" parameterType="string">
+            select tc.class_name, tc.class_id, tc.class_code, tc.academy_id, tc.major_id,
+                    tm.major_code,tm.major_name,ta.academy_code,ta.academy_name
+            from t_classes tc , t_major tm , t_academy ta where tc.major_id=tm.major_id and tc.academy_id = ta.academy_id
+            <if test="value!=null and value.length>0">
+                and tc.class_code = #{value} or tc.class_name = #{value}
+            </if>
+    </select>
+    <!--根据id查询班级-->
+    <select id="findById" parameterType="string" resultMap="classesMap">
+        select tc.class_name, tc.class_id, tc.class_code, tc.academy_id, tc.major_id,
+               tm.major_code,tm.major_name,ta.academy_code,ta.academy_name
+        from t_classes tc , t_major tm , t_academy ta where tc.major_id=tm.major_id and tc.academy_id = ta.academy_id and  class_id = #{class_id}
+    </select>
+    <resultMap id="classesMap" type="classes">
+        <id property="class_id" column="class_id"/>
+        <result property="class_code" column="class_code"/>
+        <result property="class_name" column="class_name"/>
+        <result property="major_id" column="major_id"/>
+        <result property="academy_id" column="academy_id"/>
+        <association property="academy" javaType="academy">
+            <id property="academy_id" column="academy_id"/>
+            <result property="academy_code" column="academy_code"/>
+            <result property="academy_name" column="academy_name"/>
+        </association>
+        <association property="major" javaType="major">
+            <id property="major_id" column="major_id"/>
+            <result property="major_code" column="major_code"/>
+            <result property="major_name" column="major_name"/>
+        </association>
+    </resultMap>
+
+    <!--修改-->
+    <update id="update" parameterType="classes">
+        UPDATE
+            t_classes
+        <set>
+            <if test="class_code!=null and class_code.length>0">
+                class_code = #{class_code},
+            </if>
+            <if test="class_name!=null and class_name.length>0">
+                class_name = #{class_name},
+            </if>
+            <if test="academy_id!=null and academy_id.length>0">
+                academy_id = #{academy_id},
+            </if>
+            <if test="major_id!=null and major_id.length>0">
+                major_id = #{major_id},
+            </if>
+        </set>
+        WHERE class_id = #{class_id} ;
+    </update>
+    <!--删除-->
+    <delete id="deleteById" parameterType="string">
+        delete from t_classes where class_id = #{class_id}
+    </delete>
+    <!--新增-->
+    <insert id="add" parameterType="classes">
+        insert into t_classes(class_code, class_name,academy_id,major_id) VALUES (#{class_code},#{class_name},#{academy_id},#{major_id})
+    </insert>
+    <!--根据学院id删除班级-->
+    <delete id="deleteByAcademyId" parameterType="string">
+        delete from t_classes where academy_id = #{academy_id}
+    </delete>
+    <!--根据专业id删除班级-->
+    <delete id="deleteByMajorId" parameterType="string">
+        delete from t_classes where major_id = #{major_id}
+    </delete>
+</mapper>
